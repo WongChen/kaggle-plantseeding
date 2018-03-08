@@ -1,4 +1,5 @@
 import torch
+from matplotlib import pyplot as plt
 import os
 import numpy as np
 import torchvision
@@ -26,6 +27,9 @@ def main():
     transform_train = transforms.Compose([
          CustomTransform(224),
          transforms.RandomCrop(224, padding=0),
+         transforms.RandomRotation(90),
+         transforms.RandomHorizontalFlip(),
+         transforms.RandomVerticalFlip(),
          transforms.ToTensor()])
 
     # dataset 
@@ -41,8 +45,11 @@ def main():
     net = models.resnet50(num_classes=12, pretrained=True).cuda()
     criteria = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
+    # lr_list = np.linspace(0.0000001, 0.01, 1000)
+    # i = 0
 
-    for epoch in range(200):
+    # loss_list = []
+    for epoch in range(500):
         print 'epoch %s starting'%epoch
         net.train()
         for step, (data, target) in  enumerate(train_dataloader):
@@ -59,7 +66,16 @@ def main():
             optimizer.step()
 
             for param_group in optimizer.param_groups:
-                param_group['lr'] = param_group['lr'] * 0.9**(1e-4)
+                param_group['lr'] = param_group['lr'] * 0.9**(3e-4)
+                # param_group['lr'] = lr_list[i]
+            # i += 1
+            # loss_list.append(loss.data[0])
+            # if i == 1000:
+                # print loss_list
+                # plt.plot(lr_list, loss_list)
+                # plt.savefig('./ss.png')
+
+                
         del logits
         del loss
         del data, target
@@ -74,7 +90,7 @@ def main():
         del logits
         del loss
         del data, target
-        if epoch % 8 ==0 or epoch < 10:
+        if epoch % 20 ==0 or epoch > 400:
             print 'model %s saving'%epoch
             torch.save(net.state_dict(), os.path.join(save_dir, 'checkpoints', 'epoch%s'%epoch))
 if __name__ == '__main__':

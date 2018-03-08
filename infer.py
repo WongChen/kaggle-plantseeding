@@ -19,17 +19,17 @@ class CustomTransform:
         self.t_size = t_size
     def __call__(self, img):
         if img.size[0] < self.t_size or img.size[1] < self.t_size:
-            img = img.resize([350, 350])
+            img = img.resize([250, 250])
         return img
 
 
 def main():
-    # model_para = sys.argv[1]
+    model_para = sys.argv[1]
     files = os.listdir('./data/test/')
     pre_dict = {}
     # net = vgg.MyVGG().cuda()
     net = models.resnet50(num_classes=12).cuda()
-    net.load_state_dict(torch.load('./training/first/checkpoints/epoch184'))
+    net.load_state_dict(torch.load('%s'%model_para))
     net.eval()
 
 
@@ -38,7 +38,7 @@ def main():
          CustomTransform(224),
          transforms.RandomCrop(224, padding=0),
          transforms.ToTensor()])
-    dst = TestDataset('./data/test', [transform_train for _ in range(20)])
+    dst = TestDataset('./data/test', [transform_train for _ in range(10)])
     dataloader = DataLoader(dst, batch_size=1, num_workers=10, pin_memory=True, shuffle=False)
     
     criteria = torch.nn.CrossEntropyLoss()
